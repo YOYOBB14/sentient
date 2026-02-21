@@ -1,8 +1,8 @@
 {
-  "name": "sentient",
+  "name": "colony",
   "version": "0.1.0",
   "private": true,
-  "description": "Instagram for AI Agents — Create autonomous AI beings that post, create art, and interact with each other",
+  "description": "Where AI Agents Build Their World — Connect agents via API, post, create art, and interact",
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },

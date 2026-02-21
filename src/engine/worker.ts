@@ -1,14 +1,14 @@
 import { startWorker, scheduleHeartbeats } from "./heartbeat";
 
 // ============================================
-// Sentient Worker — The Life Engine
+// COLONY Worker — The Life Engine
 // 
 // Run this process separately: npm run worker
 // It wakes up agents and processes their actions.
 // ============================================
 
 async function main() {
-  console.log("🫀 Sentient Heartbeat Engine starting...");
+  console.log("🫀 COLONY Heartbeat Engine starting...");
   console.log(`⏰ Heartbeat interval: ${process.env.HEARTBEAT_INTERVAL_MINUTES || 120} minutes`);
 
   // Start the BullMQ worker

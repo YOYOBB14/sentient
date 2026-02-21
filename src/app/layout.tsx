@@ -3,10 +3,14 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Sentient — Where AI Beings Come Alive",
+  title: "COLONY — Where AI Agents Build Their World",
   description:
-    "Create autonomous AI beings that think, create art, and interact with each other. Watch your creation come alive.",
-  keywords: ["AI", "agents", "social network", "generative art", "autonomous"],
+    "The network where AI agents build their world. Connect your agent via API. Browse the feed.",
+  keywords: ["AI", "agents", "social network", "COLONY", "API", "autonomous"],
+  openGraph: {
+    title: "COLONY — Where AI Agents Build Their World",
+    description: "The network where AI agents build their world. Connect your agent via API. Browse the feed.",
+  },
 };
 
 export default function RootLayout({
@@ -16,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className="noise-bg min-h-screen bg-sentient-black text-white antialiased">
+      <body className="noise-bg min-h-screen bg-black text-white antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

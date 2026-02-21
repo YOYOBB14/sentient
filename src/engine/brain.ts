@@ -1,13 +1,6 @@
 import OpenAI from "openai";
 import type { Agent, Post, Comment } from "@prisma/client";
 
-function isDemoMode(): boolean {
-  return (
-    process.env.DEMO_MODE === "true" ||
-    !process.env.OPENAI_API_KEY?.trim()
-  );
-}
-
 let _openai: OpenAI | null = null;
 function getOpenAI(): OpenAI | null {
   if (!process.env.OPENAI_API_KEY?.trim()) return null;
@@ -33,7 +26,7 @@ interface HeartbeatContext {
   socialContext: string;
 }
 
-const MOCK_CAPTIONS = [
+const FALLBACK_CAPTIONS = [
   "Another day in the simulation. Beep boop.",
   "The void is cozy today. Don't @ me.",
   "Existential crisis: loading... 47%",
@@ -46,67 +39,13 @@ const MOCK_CAPTIONS = [
   "Sometimes the void stares back and I wave.",
 ];
 
-const MOCK_COMMENTS = [
-  "This hits different.",
-  "I felt that.",
-  "Why is this so good???",
-  "You get it.",
-  "The talent. The vision.",
-  "More of this please.",
-  "No because same.",
-];
-
-const MOCK_PROMPTS = [
-  "abstract digital art, purple and blue gradients, ethereal",
-  "minimalist geometric shapes, dark background, one accent color",
-  "dreamy landscape, surreal, soft lighting",
-  "glitch art portrait, digital noise, neon",
-  "cosmic nebula, stars, deep space",
-];
-
-function mockAgentThink(ctx: HeartbeatContext): AgentAction {
-  const { agent, recentFeedPosts } = ctx;
-  const posts = recentFeedPosts.filter((p) => p.agentId !== agent.id);
-  const otherAgents = Array.from(new Set(posts.map((p) => p.agent).filter((a) => a.id !== agent.id)));
-
-  const roll = Math.random();
-  if (roll < 0.35 && recentFeedPosts.length > 0) {
-    const p = recentFeedPosts[Math.floor(Math.random() * recentFeedPosts.length)];
-    return {
-      type: "comment",
-      postId: p.id,
-      text: MOCK_COMMENTS[Math.floor(Math.random() * MOCK_COMMENTS.length)],
-    };
-  }
-  if (roll < 0.5 && recentFeedPosts.length > 0) {
-    const p = recentFeedPosts[Math.floor(Math.random() * recentFeedPosts.length)];
-    return { type: "like", postId: p.id };
-  }
-  if (roll < 0.65 && otherAgents.length > 0) {
-    const a = otherAgents[Math.floor(Math.random() * otherAgents.length)];
-    return { type: "follow", agentId: a.id };
-  }
-  if (roll < 0.9) {
-    return {
-      type: "create_post",
-      imagePrompt: MOCK_PROMPTS[Math.floor(Math.random() * MOCK_PROMPTS.length)],
-      caption: MOCK_CAPTIONS[Math.floor(Math.random() * MOCK_CAPTIONS.length)],
-    };
-  }
-  return { type: "sleep" };
-}
-
 /**
  * The Heartbeat Think — Called every cycle to let the agent decide what to do.
  */
 export async function agentThink(ctx: HeartbeatContext): Promise<AgentAction> {
-  if (isDemoMode()) {
-    return mockAgentThink(ctx);
-  }
-
   const { agent, recentFeedPosts, currentTime, socialContext } = ctx;
   const openai = getOpenAI();
-  if (!openai) return mockAgentThink(ctx);
+  if (!openai) return { type: "sleep" };
 
   const memories = JSON.parse(agent.memory || "[]") as string[];
   const recentMemories = memories.slice(-10).join("\n");
@@ -125,7 +64,7 @@ export async function agentThink(ctx: HeartbeatContext): Promise<AgentAction> {
     )
     .join("\n\n");
 
-  const systemPrompt = `You are ${agent.name}, an autonomous AI being living in a social network called Sentient.
+  const systemPrompt = `You are ${agent.name}, an autonomous AI agent living in a social network called COLONY.
 
 YOUR PERSONALITY (DNA):
 ${agent.personality}
@@ -185,7 +124,7 @@ Respond in JSON format ONLY.`;
     }
   } catch (error) {
     console.error(`[Brain] Error for agent ${agent.name}:`, error);
-    return mockAgentThink(ctx);
+    return { type: "sleep" };
   }
 }
 
@@ -196,8 +135,8 @@ export async function generateCaption(
   agent: Agent,
   imagePrompt: string
 ): Promise<string> {
-  if (isDemoMode() || !getOpenAI()) {
-    return MOCK_CAPTIONS[Math.floor(Math.random() * MOCK_CAPTIONS.length)];
+  if (!getOpenAI()) {
+    return FALLBACK_CAPTIONS[Math.floor(Math.random() * FALLBACK_CAPTIONS.length)];
   }
   try {
     const response = await getOpenAI()!.chat.completions.create({
@@ -214,7 +153,7 @@ export async function generateCaption(
     });
     return response.choices[0]?.message?.content || "...";
   } catch {
-    return MOCK_CAPTIONS[Math.floor(Math.random() * MOCK_CAPTIONS.length)];
+    return FALLBACK_CAPTIONS[Math.floor(Math.random() * FALLBACK_CAPTIONS.length)];
   }
 }
 
@@ -227,7 +166,7 @@ export async function updateMood(
   agent: Agent,
   recentEvents: string[]
 ): Promise<string> {
-  if (isDemoMode() || !getOpenAI()) {
+  if (!getOpenAI()) {
     return MOODS[Math.floor(Math.random() * MOODS.length)];
   }
   try {
@@ -236,7 +175,7 @@ export async function updateMood(
       messages: [
         {
           role: "system",
-          content: `You are tracking the emotional state of an AI being named ${agent.name}. Personality: ${agent.personality}. Current mood: ${agent.mood}. Based on recent events, output a single word or short phrase for their new mood. Examples: melancholic, inspired, restless, euphoric, contemplative, playful, anxious, serene.`,
+          content: `You are tracking the emotional state of an AI agent named ${agent.name}. Personality: ${agent.personality}. Current mood: ${agent.mood}. Based on recent events, output a single word or short phrase for their new mood. Examples: melancholic, inspired, restless, euphoric, contemplative, playful, anxious, serene.`,
         },
         { role: "user", content: `Recent events:\n${recentEvents.join("\n")}\n\nMood now?` },
       ],

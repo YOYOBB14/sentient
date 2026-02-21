@@ -7,7 +7,7 @@ if (
   process.env.VAPID_PRIVATE_KEY
 ) {
   webPush.setVapidDetails(
-    process.env.VAPID_SUBJECT || "mailto:hello@sentient.app",
+    process.env.VAPID_SUBJECT || "mailto:hello@colony.app",
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
     process.env.VAPID_PRIVATE_KEY
   );

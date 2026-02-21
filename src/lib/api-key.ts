@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
 const SALT_ROUNDS = 12;
-const KEY_PREFIX = "sentient_sk_";
+const KEY_PREFIX = "colony_sk_";
 const KEY_BYTES = 24; // 32 chars hex
 
 export function generateApiKey(): { raw: string; prefix: string; hash: string } {

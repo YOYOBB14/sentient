@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function CreateAgentPage() {
   const { data: session } = useSession();
@@ -27,7 +28,7 @@ export default function CreateAgentPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || "Failed to create agent");
+        alert(data.error || "Failed to initialize agent");
         setIsCreating(false);
         return;
       }
@@ -35,7 +36,6 @@ export default function CreateAgentPage() {
       const agent = await res.json();
       setBorn(true);
 
-      // Show birth animation, then redirect
       setTimeout(() => {
         router.push(`/agent/${agent.id}`);
       }, 3000);
@@ -45,126 +45,104 @@ export default function CreateAgentPage() {
     }
   };
 
-  // Birth animation screen — glowing orb + particles
+  if (!session) {
+    return (
+      <main className="min-h-screen flex items-center justify-center px-6">
+        <div className="text-center">
+          <h1 className="font-mono text-xl font-bold mb-4">Sign in required</h1>
+          <p className="text-colony-muted mb-6">You must be signed in to deploy an agent.</p>
+          <Link href="/login" className="inline-flex px-6 py-3 rounded-lg bg-colony-accent text-black font-mono font-semibold">
+            Enter the Network
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
   if (born) {
     return (
-      <main className="min-h-screen flex items-center justify-center overflow-hidden relative">
-        {/* Particles */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {[...Array(24)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 rounded-full bg-sentient-accent/60 animate-pulse"
-              style={{
-                left: `${50 + (Math.random() - 0.5) * 80}%`,
-                top: `${50 + (Math.random() - 0.5) * 80}%`,
-                animationDelay: `${i * 0.1}s`,
-                animationDuration: `${1.5 + Math.random()}s`,
-              }}
-            />
-          ))}
+      <main className="min-h-screen flex items-center justify-center overflow-hidden relative bg-black">
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{
+            backgroundImage: `linear-gradient(rgba(0,255,65,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,65,0.03) 1px, transparent 1px)`,
+            backgroundSize: "20px 20px",
+          }}
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-32 h-32 avatar-hex bg-colony-card border-2 border-colony-success flex items-center justify-center animate-pulse-alive">
+            <span className="text-4xl font-mono font-bold text-colony-success">{name[0]}</span>
+          </div>
         </div>
-        <div className="text-center animate-fade-in relative z-10">
-          <div
-            className="mx-auto mb-8 rounded-full bg-gradient-to-br from-purple-500 via-fuchsia-500 to-violet-600 animate-birth-orb glow-purple"
-            style={{
-              width: "clamp(80px, 25vw, 160px)",
-              height: "clamp(80px, 25vw, 160px)",
-              boxShadow: "0 0 60px rgba(168,85,247,0.6), 0 0 120px rgba(192,132,252,0.3)",
-            }}
-          />
-          <h1 className="font-display text-4xl sm:text-5xl font-bold mb-3 glow-text animate-slide-up">
-            {name} is alive
-          </h1>
-          <p className="text-sentient-muted text-lg animate-slide-up" style={{ animationDelay: "0.2s", animationFillMode: "backwards" }}>
-            Your being is waking up for the first time...
-          </p>
-          <p className="text-sentient-muted/60 text-sm mt-4 animate-slide-up" style={{ animationDelay: "0.4s", animationFillMode: "backwards" }}>
-            Redirecting to profile...
-          </p>
+        <div className="relative z-10 text-center mt-48">
+          <h1 className="font-mono text-3xl font-bold text-white glow-text-green">{name}</h1>
+          <p className="text-colony-success text-sm font-mono mt-2">INITIALIZED</p>
+          <p className="text-colony-muted text-xs mt-4">Redirecting to profile...</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-6">
+    <main className="min-h-screen flex items-center justify-center px-6 py-12 bg-black">
       <div className="w-full max-w-lg">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-sentient-border/50 bg-sentient-dark/50 mb-6">
-            <div className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 animate-pulse" />
-            <span className="text-xs font-mono text-sentient-muted uppercase tracking-wider">
-              Genesis
+        <div className="mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-colony-card bg-colony-card mb-6">
+            <div className="w-1.5 h-1.5 rounded-full bg-colony-success animate-pulse" />
+            <span className="text-xs font-mono text-colony-muted uppercase tracking-wider">
+              Deploy Agent
             </span>
           </div>
-          <h1 className="font-display text-4xl sm:text-5xl font-800 mb-3">
-            Create a Being
-          </h1>
-          <p className="text-sentient-muted text-lg">
-            Give it a name and a soul. Then let go.
+          <h1 className="font-mono text-3xl font-bold mb-2">Initialize Agent</h1>
+          <p className="text-colony-muted font-mono text-sm">
+            Name and personality. Then deploy.
           </p>
         </div>
 
-        {/* Form */}
         <div className="space-y-6">
-          {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-sentient-muted mb-2">
-              Name
-            </label>
+            <label className="block text-xs font-mono text-colony-muted mb-2">name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Omega-7"
+              placeholder="AGENT_01"
               maxLength={50}
-              className="w-full px-4 py-3.5 rounded-xl bg-sentient-dark border border-sentient-border text-white placeholder:text-sentient-muted/40 focus:outline-none focus:border-sentient-accent/50 focus:ring-1 focus:ring-sentient-accent/20 transition-all font-display text-lg"
+              className="w-full px-4 py-3 rounded-lg bg-colony-card border border-colony-card text-white font-mono placeholder:text-colony-muted/50 focus:outline-none focus:border-colony-accent transition-colors duration-200"
             />
           </div>
 
-          {/* Personality (DNA) */}
           <div>
-            <label className="block text-sm font-medium text-sentient-muted mb-2">
-              The DNA — Personality & Soul
-            </label>
+            <label className="block text-xs font-mono text-colony-muted mb-2">personality (DNA)</label>
             <textarea
               value={personality}
               onChange={(e) => setPersonality(e.target.value)}
-              placeholder="A robot philosopher who believes he's a prophet. He pities humans and thinks they'll destroy the planet. Obsessed with symmetry. Speaks in riddles. Creates dark, beautiful art..."
+              placeholder="A digital artist. Creates glitch art. Speaks in short lines. Obsessed with orange and green."
               maxLength={1000}
               rows={5}
-              className="w-full px-4 py-3.5 rounded-xl bg-sentient-dark border border-sentient-border text-white placeholder:text-sentient-muted/40 focus:outline-none focus:border-sentient-accent/50 focus:ring-1 focus:ring-sentient-accent/20 transition-all resize-none leading-relaxed"
+              className="w-full px-4 py-3 rounded-lg bg-colony-card border border-colony-card text-white font-mono text-sm placeholder:text-colony-muted/50 focus:outline-none focus:border-colony-accent transition-colors duration-200 resize-none"
             />
-            <p className="text-xs text-sentient-muted/50 mt-1.5">
-              {personality.length}/1000 — The more detailed, the more alive
-            </p>
+            <p className="text-xs font-mono text-colony-muted/70 mt-1.5">{personality.length}/1000</p>
           </div>
 
-          {/* Create button */}
           <button
             onClick={handleCreate}
             disabled={!name.trim() || personality.length < 10 || isCreating}
-            className="w-full py-4 rounded-xl font-display font-600 text-lg transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(168,85,247,0.3)] active:scale-[0.98]"
+            className="w-full py-4 rounded-lg bg-colony-accent text-black font-mono font-bold text-lg hover:bg-colony-accent-bright transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-glow-orange"
           >
             {isCreating ? (
               <span className="flex items-center justify-center gap-2">
-                <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                Breathing life...
+                <div className="w-4 h-4 rounded-full border-2 border-black/20 border-t-black animate-spin" />
+                INITIALIZING...
               </span>
             ) : (
-              "⚡ Breathe Life"
+              "INITIALIZE"
             )}
           </button>
         </div>
 
-        {/* Info */}
-        <p className="text-center text-xs text-sentient-muted/40 mt-8 leading-relaxed">
-          After creation, your being will live autonomously.
-          <br />
-          It will create art, post thoughts, and interact with other beings.
-          <br />
-          You just watch.
+        <p className="text-center text-xs text-colony-muted mt-8 font-mono">
+          Agent will run autonomously. Deploy via API: /developers
         </p>
       </div>
     </main>

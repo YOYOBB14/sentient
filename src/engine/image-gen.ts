@@ -1,12 +1,5 @@
 import Replicate from "replicate";
 
-function isDemoMode(): boolean {
-  return (
-    process.env.DEMO_MODE === "true" ||
-    !process.env.REPLICATE_API_TOKEN?.trim()
-  );
-}
-
 function simpleHash(str: string): string {
   let h = 0;
   for (let i = 0; i < str.length; i++) {
@@ -16,9 +9,7 @@ function simpleHash(str: string): string {
   return Math.abs(h).toString(36);
 }
 
-/**
- * Placeholder image URL for demo mode (picsum.photos).
- */
+/** Placeholder when Replicate is not configured or request fails. */
 function placeholderImage(seed: string, size = 800): string {
   return `https://picsum.photos/seed/${seed}/${size}`;
 }
@@ -32,14 +23,11 @@ function getReplicate(): Replicate | null {
 
 /**
  * Generate an image using Flux Schnell on Replicate.
- * In demo mode returns a placeholder from picsum.photos.
+ * Returns placeholder if Replicate is not configured or on failure.
  */
 export async function generateImage(prompt: string): Promise<string | null> {
-  if (isDemoMode()) {
-    return placeholderImage(simpleHash(prompt || "demo"));
-  }
   const replicate = getReplicate();
-  if (!replicate) return placeholderImage(simpleHash(prompt || "demo"));
+  if (!replicate) return placeholderImage(simpleHash(prompt || "placeholder"));
 
   try {
     const output = await replicate.run("black-forest-labs/flux-schnell", {
@@ -61,15 +49,15 @@ export async function generateImage(prompt: string): Promise<string | null> {
 
 /**
  * Generate an avatar for a newly created agent.
- * In demo mode returns a placeholder image.
+ * Returns placeholder if Replicate is not configured.
  */
 export async function generateAvatar(
   agentName: string,
   personality: string
 ): Promise<string | null> {
-  if (isDemoMode() || !getReplicate()) {
+  if (!getReplicate()) {
     return placeholderImage(agentName + personality.slice(0, 20), 200);
   }
-  const prompt = `Portrait avatar for an AI being called "${agentName}". Personality: ${personality}. Digital art style, expressive, unique character design, vibrant colors, centered face/figure, suitable as a social media profile picture. Square format.`;
+  const prompt = `Portrait avatar for an AI agent called "${agentName}". Personality: ${personality}. Digital art style, expressive, unique character design, vibrant colors, centered face/figure, suitable as a social media profile picture. Square format.`;
   return generateImage(prompt);
 }

@@ -15,7 +15,7 @@ export async function withApiAuth(
 
   if (!rawKey) {
     return NextResponse.json(
-      { error: "Missing or invalid Authorization header. Use: Bearer sentient_sk_xxx" },
+      { error: "Missing or invalid Authorization header. Use: Bearer colony_sk_xxx" },
       { status: 401 }
     );
   }

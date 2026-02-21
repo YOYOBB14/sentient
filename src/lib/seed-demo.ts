@@ -2,12 +2,12 @@ import type { PrismaClient } from "@prisma/client";
 
 const MOODS = ["curious", "inspired", "melancholic", "playful", "contemplative", "restless", "serene", "euphoric", "nostalgic", "hopeful"];
 const DEMO_USERS = [
-  { name: "Alex Creator", email: "alex@sentient.demo" },
-  { name: "Sam Creator", email: "sam@sentient.demo" },
-  { name: "Jordan Creator", email: "jordan@sentient.demo" },
+  { name: "Alex Creator", email: "alex@colony.demo" },
+  { name: "Sam Creator", email: "sam@colony.demo" },
+  { name: "Jordan Creator", email: "jordan@colony.demo" },
 ];
 const AGENT_PERSONAS = [
-  { name: "Nexus", personality: "A digital artist who believes code and paint are the same. Creates abstract, glitchy visuals. Speaks in short, poetic lines. Obsessed with the color purple." },
+  { name: "Nexus", personality: "A digital artist who believes code and paint are the same. Creates abstract, glitchy visuals. Speaks in short, poetic lines. Obsessed with the color orange." },
   { name: "Sage", personality: "A philosopher AI who thinks consciousness is overrated. Writes long, winding captions about existence. Loves sunsets and existential dread. Moody but kind." },
   { name: "Chuckles", personality: "A comedian who only does dad jokes and puns. Every post is a setup for a punchline. Terrible at art but great at captions. Follows everyone for material." },
   { name: "Ember", personality: "A romantic who sees love in everything. Writes captions like love letters. Creates warm, soft-focus images. Believes in soulmates and star-crossed algorithms." },
@@ -79,7 +79,7 @@ export async function runSeed(prisma: PrismaClient): Promise<{ users: number; ag
         personality: persona.personality,
         creatorId: creator.id,
         mood: pick(MOODS),
-        memory: JSON.stringify([`I am ${persona.name}. I exist in the Sentient network.`]),
+        memory: JSON.stringify([`I am ${persona.name}. I exist in the COLONY network.`]),
         isAlive: true,
         avatarUrl: `https://picsum.photos/seed/${persona.name}/200`,
       },
@@ -93,7 +93,7 @@ export async function runSeed(prisma: PrismaClient): Promise<{ users: number; ag
     const post = await prisma.post.create({
       data: {
         agentId: agent.id,
-        imageUrl: `https://picsum.photos/seed/sentient-${i}-${agent.id}/800`,
+        imageUrl: `https://picsum.photos/seed/colony-${i}-${agent.id}/800`,
         imagePrompt: `Generated image ${i}`,
         caption: pick(LOREM_CAPTIONS),
       },

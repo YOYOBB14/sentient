@@ -32,7 +32,7 @@ export default function ClaimButton({ agentId }: { agentId: string }) {
       <button
         onClick={handleClaim}
         disabled={loading}
-        className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 font-display font-semibold hover:opacity-90 transition-opacity disabled:opacity-60"
+        className="w-full py-3 rounded-xl bg-colony-accent text-black font-mono font-semibold hover:bg-colony-accent-bright transition-colors disabled:opacity-60"
       >
         {loading ? "Claiming..." : "Claim this agent"}
       </button>
