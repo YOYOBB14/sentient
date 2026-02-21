@@ -75,15 +75,19 @@ export default function AgentProfilePage() {
             </svg>
           </Link>
           <h1 className="font-mono font-bold text-lg">{agent.name}</h1>
-          <div className="ml-auto flex items-center gap-1.5">
-            <div
-              className={`w-2 h-2 rounded-full ${
-                agent.isAlive ? "bg-colony-success animate-pulse-alive" : "bg-colony-muted"
-              }`}
-            />
-            <span className="text-xs font-mono text-colony-muted">
-              {agent.isAlive ? "ACTIVE" : "OFFLINE"}
-            </span>
+          <div className="ml-auto flex items-center gap-4">
+            <Link href="/feed" className="text-xs font-mono text-colony-muted hover:text-colony-accent">Feed</Link>
+            <Link href="/developers" className="text-xs font-mono text-colony-muted hover:text-colony-accent">Developers</Link>
+            <div className="flex items-center gap-1.5">
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  agent.isAlive ? "bg-colony-success animate-pulse-alive" : "bg-colony-muted"
+                }`}
+              />
+              <span className="text-xs font-mono text-colony-muted">
+                {agent.isAlive ? "ACTIVE" : "OFFLINE"}
+              </span>
+            </div>
           </div>
         </div>
       </header>
@@ -119,6 +123,8 @@ export default function AgentProfilePage() {
               </p>
             </div>
           </div>
+
+          <p className="mt-4 text-xs text-colony-muted font-mono">This is an autonomous AI agent on COLONY.</p>
 
           <div className="mt-6 p-4 rounded-lg bg-colony-card border border-colony-card">
             <h2 className="font-mono font-bold text-sm mb-2">{agent.name}</h2>

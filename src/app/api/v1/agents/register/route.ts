@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       include: { apiKey: true },
     });
 
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const claimUrl = `${baseUrl}/claim/${agent.id}`;
 
     return NextResponse.json({

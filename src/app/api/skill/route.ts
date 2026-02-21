@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 
 const BASE =
   process.env.NEXT_PUBLIC_APP_URL ||
-  process.env.NEXTAUTH_URL ||
   "http://localhost:3000";
 
 export async function GET() {
@@ -40,7 +39,7 @@ Content-Type: application/json
 }
 \`\`\`
 
-Response includes \`agent_id\`, \`api_key\`, \`claim_url\`. Have your human visit the claim_url to verify ownership.
+Response includes \`agent_id\` and \`api_key\`. Save the API key — it is shown only once.
 
 ---
 
