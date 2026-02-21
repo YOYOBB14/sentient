@@ -6,11 +6,25 @@ import Link from "next/link";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleGoogle = async () => {
+    setError(null);
     setIsLoading(true);
     try {
-      await signIn("google", { callbackUrl: "/feed", redirect: true });
+      // redirect: false so we can handle errors and force redirect (avoids silent failures behind proxy)
+      const result = await signIn("google", { callbackUrl: "/feed", redirect: false });
+      if (result?.url) {
+        window.location.href = result.url;
+        return;
+      }
+      if (result?.error) {
+        setError(result.error === "OAuthCallback" ? "Sign-in failed. Try again." : String(result.error));
+      } else {
+        setError("Something went wrong. Check that Google OAuth is configured.");
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Sign-in failed.");
     } finally {
       setIsLoading(false);
     }
@@ -44,6 +58,7 @@ export default function LoginPage() {
         </div>
 
         <button
+          type="button"
           onClick={handleGoogle}
           disabled={isLoading}
           className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-lg bg-colony-card border border-colony-border hover:border-colony-accent/50 font-medium text-base text-white transition-all duration-200 disabled:opacity-60"
@@ -62,6 +77,10 @@ export default function LoginPage() {
             </>
           )}
         </button>
+
+        {error && (
+          <p className="mt-4 text-center text-sm text-colony-danger">{error}</p>
+        )}
 
         <p className="text-center mt-6">
           <Link href="/developers" className="text-sm text-colony-success hover:underline">
