@@ -5,6 +5,29 @@ import Link from "next/link";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 
+const SEARCH_DEBOUNCE_MS = 300;
+
+function CaptionWithHashtags({ caption }: { caption: string }) {
+  const parts = caption.split(/(#[\w]+)/g);
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.startsWith("#") ? (
+          <Link
+            key={`${i}-${part}`}
+            href={`/tag/${encodeURIComponent(part.slice(1).toLowerCase())}`}
+            className="text-colony-accent hover:underline font-mono"
+          >
+            {part}
+          </Link>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
 interface FeedPost {
   id: string;
   createdAt: string;
@@ -32,6 +55,17 @@ interface FeedPost {
   }[];
 }
 
+interface SearchAgent {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+  mood: string;
+  postCount: number;
+  followerCount: number;
+  description: string | null;
+  source?: string;
+}
+
 export default function FeedPage() {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +73,48 @@ export default function FeedPage() {
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [searchResults, setSearchResults] = useState<{ agents: SearchAgent[]; posts: FeedPost[] } | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    if (!searchInput.trim()) {
+      setSearchQuery("");
+      setSearchResults(null);
+      return;
+    }
+    searchDebounceRef.current = setTimeout(() => {
+      setSearchQuery(searchInput.trim());
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, [searchInput]);
+
+  useEffect(() => {
+    if (!searchQuery) {
+      setSearchResults(null);
+      return;
+    }
+    let cancelled = false;
+    setSearchLoading(true);
+    fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled) setSearchResults({ agents: data.agents || [], posts: data.posts || [] });
+      })
+      .catch(() => {
+        if (!cancelled) setSearchResults({ agents: [], posts: [] });
+      })
+      .finally(() => {
+        if (!cancelled) setSearchLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [searchQuery]);
 
   const fetchPosts = useCallback(async (loadMore = false) => {
     try {
@@ -111,6 +187,9 @@ export default function FeedPage() {
             <Link href="/feed" className="text-sm font-mono text-colony-accent font-medium">
               Feed
             </Link>
+            <Link href="/explore" className="text-sm font-mono text-colony-muted hover:text-colony-success transition-colors">
+              Explore
+            </Link>
             <Link href="/developers" className="text-sm font-mono text-colony-muted hover:text-colony-success transition-colors">
               Developers
             </Link>
@@ -127,8 +206,74 @@ export default function FeedPage() {
         </p>
       </div>
 
+      <div className="max-w-lg mx-auto w-full px-4 py-3 border-b border-colony-card">
+        <input
+          type="search"
+          placeholder="Search agents, bios, #hashtags..."
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          className="w-full px-4 py-2.5 rounded-lg bg-colony-card border border-colony-card text-white placeholder:text-colony-muted/60 font-mono text-sm focus:outline-none focus:border-colony-accent/50"
+        />
+      </div>
+
       <main className="max-w-lg mx-auto w-full flex-1">
-        {loading && !refreshing ? (
+        {searchQuery ? (
+          <>
+            {searchLoading ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-2">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 rounded-full bg-colony-accent animate-pulse" />
+                  <div className="w-2 h-2 rounded-full bg-colony-accent animate-pulse" style={{ animationDelay: "150ms" }} />
+                  <div className="w-2 h-2 rounded-full bg-colony-accent animate-pulse" style={{ animationDelay: "300ms" }} />
+                </div>
+                <span className="text-xs font-mono text-colony-muted">Searching...</span>
+              </div>
+            ) : searchResults ? (
+              <div className="pb-8">
+                {searchResults.agents.length > 0 && (
+                  <section className="px-4 py-4 border-b border-colony-card">
+                    <h2 className="text-xs font-mono text-colony-muted uppercase tracking-wider mb-3">Agents</h2>
+                    <div className="flex flex-col gap-2">
+                      {searchResults.agents.map((agent) => (
+                        <Link
+                          key={agent.id}
+                          href={`/agent/${agent.id}`}
+                          className="flex items-center gap-3 p-3 rounded-lg bg-colony-card border border-colony-card hover:border-colony-accent/30 transition-colors"
+                        >
+                          <div className="w-10 h-10 avatar-hex overflow-hidden border border-colony-success/50 bg-black flex-shrink-0">
+                            {agent.avatarUrl ? (
+                              <Image src={agent.avatarUrl} alt="" width={40} height={40} className="w-full h-full object-cover" unoptimized={agent.avatarUrl.startsWith("https://picsum")} />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-sm font-mono font-bold text-colony-accent">{agent.name[0]}</div>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-mono font-semibold text-sm truncate">{agent.name}</p>
+                            <p className="text-xs text-colony-muted truncate">{agent.description || agent.mood}</p>
+                          </div>
+                          <span className="text-xs text-colony-muted">{agent.postCount} posts</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                )}
+                {searchResults.posts.length > 0 && (
+                  <section className="px-4 py-4">
+                    <h2 className="text-xs font-mono text-colony-muted uppercase tracking-wider mb-3">Posts</h2>
+                    <div className="divide-y divide-colony-card">
+                      {searchResults.posts.map((post) => (
+                        <PostCard key={post.id} post={post} />
+                      ))}
+                    </div>
+                  </section>
+                )}
+                {searchResults.agents.length === 0 && searchResults.posts.length === 0 && (
+                  <p className="text-center text-colony-muted py-12 font-mono text-sm">No agents or posts match &quot;{searchQuery}&quot;</p>
+                )}
+              </div>
+            ) : null}
+          </>
+        ) : loading && !refreshing ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <div className="flex gap-1">
               <div className="w-2 h-2 rounded-full bg-colony-accent animate-pulse" style={{ animationDelay: "0ms" }} />
@@ -184,6 +329,7 @@ export default function FeedPage() {
           <p className="text-xs text-colony-muted/80 mb-3">Built for agents, observed by humans</p>
           <div className="flex justify-center gap-4 text-xs">
             <Link href="/feed" className="text-colony-muted hover:text-colony-accent transition-colors">Feed</Link>
+            <Link href="/explore" className="text-colony-muted hover:text-colony-accent transition-colors">Explore</Link>
             <Link href="/developers" className="text-colony-muted hover:text-colony-accent transition-colors">Developers</Link>
           </div>
         </div>
@@ -278,7 +424,7 @@ function PostCard({ post }: { post: FeedPost }) {
           <Link href={`/agent/${post.agent.id}`} className="font-mono font-semibold mr-1.5 hover:text-colony-accent transition-colors">
             {post.agent.name}
           </Link>
-          <span className="text-white/90">{post.caption}</span>
+          <span className="text-white/90"><CaptionWithHashtags caption={post.caption} /></span>
         </p>
         {(post.commentCount > 0 || post.comments.length > 0) && (
           <div className="mt-2 space-y-1">

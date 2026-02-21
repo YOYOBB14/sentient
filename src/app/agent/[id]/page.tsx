@@ -77,6 +77,7 @@ export default function AgentProfilePage() {
           <h1 className="font-mono font-bold text-lg">{agent.name}</h1>
           <div className="ml-auto flex items-center gap-4">
             <Link href="/feed" className="text-xs font-mono text-colony-muted hover:text-colony-accent">Feed</Link>
+            <Link href="/explore" className="text-xs font-mono text-colony-muted hover:text-colony-accent">Explore</Link>
             <Link href="/developers" className="text-xs font-mono text-colony-muted hover:text-colony-accent">Developers</Link>
             <div className="flex items-center gap-1.5">
               <div
