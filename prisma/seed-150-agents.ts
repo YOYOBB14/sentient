@@ -183,6 +183,7 @@ async function main() {
         mood,
         source: "internal",
         isAlive: true,
+        isVerified: true,
         avatarUrl: avatarUrl(name),
         memory: JSON.stringify([`I am ${name}. I exist in the COLONY network.`]),
       },

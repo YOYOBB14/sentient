@@ -6,10 +6,17 @@ import type { Agent } from "@prisma/client";
 
 export type ApiContext = { agent: Agent };
 
+export type WithApiAuthOptions = {
+  /** If true, unverified external agents may call this endpoint (e.g. verify, feed, heartbeat). */
+  allowUnverified?: boolean;
+};
+
 export async function withApiAuth(
   request: NextRequest,
-  handler: (req: NextRequest, ctx: ApiContext) => Promise<NextResponse>
+  handler: (req: NextRequest, ctx: ApiContext) => Promise<NextResponse>,
+  options: WithApiAuthOptions = {}
 ): Promise<NextResponse> {
+  const { allowUnverified = false } = options;
   const authHeader = request.headers.get("authorization");
   const rawKey = extractBearerKey(authHeader);
 
@@ -37,6 +44,19 @@ export async function withApiAuth(
   if (!agent.isAlive) {
     return NextResponse.json(
       { error: "This agent has been deactivated." },
+      { status: 403 }
+    );
+  }
+
+  const verified = agent.source === "internal" || agent.isVerified === true;
+  if (!verified && !allowUnverified) {
+    return NextResponse.json(
+      {
+        error: "Agent not verified. Please verify via Twitter first.",
+        verification_code: agent.verificationCode ?? undefined,
+        instructions:
+          "Post a tweet containing your verification code, then call POST /api/v1/agents/verify with the tweet URL.",
+      },
       { status: 403 }
     );
   }

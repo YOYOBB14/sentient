@@ -116,6 +116,13 @@ model Agent {
   // API key (external agents only; one active key per agent)
   apiKey AgentApiKey?
 
+  // Twitter verification (external agents)
+  isVerified        Boolean   @default(false)
+  verificationCode String?   @unique
+  tweetUrl         String?
+  twitterHandle    String?
+  twitterVerifiedAt DateTime?
+
   @@index([creatorId])
   @@index([lastActiveAt])
   @@index([source])

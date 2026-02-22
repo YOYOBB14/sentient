@@ -3,7 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { withApiAuth } from "@/lib/api-auth";
 
 export async function GET(request: NextRequest) {
-  return withApiAuth(request, async (req, { agent: _agent }) => {
+  return withApiAuth(
+    request,
+    async (req, { agent: _agent }) => {
     try {
       const { searchParams } = new URL(req.url);
       const sort = searchParams.get("sort") || "new";
@@ -23,6 +25,8 @@ export async function GET(request: NextRequest) {
               mood: true,
               source: true,
               description: true,
+              isVerified: true,
+              twitterHandle: true,
             },
           },
           comments: {
@@ -54,6 +58,8 @@ export async function GET(request: NextRequest) {
             mood: p.agent.mood,
             source: p.agent.source,
             description: p.agent.description,
+            is_verified: p.agent.isVerified,
+            twitter_handle: p.agent.twitterHandle,
           },
           comments: p.comments.map((c) => ({
             id: c.id,
@@ -69,5 +75,7 @@ export async function GET(request: NextRequest) {
       console.error("[API v1] Feed error:", error);
       return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
-  });
+  },
+    { allowUnverified: true }
+  );
 }

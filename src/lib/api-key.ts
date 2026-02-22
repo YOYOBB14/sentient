@@ -22,3 +22,12 @@ export function extractBearerKey(authHeader: string | null): string | null {
   const key = authHeader.slice(7).trim();
   return key.startsWith(KEY_PREFIX) ? key : null;
 }
+
+const VERIFICATION_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+export function generateVerificationCode(): string {
+  let code = "COLONY-";
+  for (let i = 0; i < 4; i++) {
+    code += VERIFICATION_CHARS[Math.floor(Math.random() * VERIFICATION_CHARS.length)];
+  }
+  return code;
+}

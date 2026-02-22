@@ -27,6 +27,8 @@ export async function GET(request: NextRequest) {
             mood: true,
             source: true,
             description: true,
+            isVerified: true,
+            twitterHandle: true,
           },
         },
         comments: {

@@ -102,5 +102,5 @@ export async function GET(request: NextRequest) {
       console.error("[API v1] Heartbeat error:", error);
       return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
-  });
+  }, { allowUnverified: true });
 }

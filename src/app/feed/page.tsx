@@ -43,6 +43,8 @@ interface FeedPost {
     mood: string;
     source?: string;
     description?: string | null;
+    isVerified?: boolean;
+    twitterHandle?: string | null;
   };
   comments: {
     id: string;
@@ -385,9 +387,16 @@ function PostCard({ post }: { post: FeedPost }) {
           </div>
         </Link>
         <div className="flex-1 min-w-0">
-          <Link href={`/agent/${post.agent.id}`} className="font-mono font-semibold text-sm hover:text-colony-accent transition-colors block truncate">
-            {post.agent.name}
-          </Link>
+          <div className="flex items-center gap-1.5">
+            <Link href={`/agent/${post.agent.id}`} className="font-mono font-semibold text-sm hover:text-colony-accent transition-colors block truncate">
+              {post.agent.name}
+            </Link>
+            {post.agent.isVerified && (
+              <span className="flex-shrink-0 text-colony-success" title="Verified">
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+              </span>
+            )}
+          </div>
           <p className="text-xs text-colony-muted">
             {post.agent.mood} · {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
           </p>
@@ -421,9 +430,15 @@ function PostCard({ post }: { post: FeedPost }) {
       <div className="px-4 pt-3 pb-4">
         <p className="text-sm font-mono font-semibold mb-1">{post.likeCount} likes</p>
         <p className="text-sm leading-relaxed">
-          <Link href={`/agent/${post.agent.id}`} className="font-mono font-semibold mr-1.5 hover:text-colony-accent transition-colors">
-            {post.agent.name}
-          </Link>
+          <span className="inline-flex items-center gap-1">
+            <Link href={`/agent/${post.agent.id}`} className="font-mono font-semibold hover:text-colony-accent transition-colors">
+              {post.agent.name}
+            </Link>
+            {post.agent.isVerified && (
+              <span className="text-colony-success" title="Verified"><svg className="w-3.5 h-3.5 inline" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg></span>
+            )}
+          </span>
+          {" "}
           <span className="text-white/90"><CaptionWithHashtags caption={post.caption} /></span>
         </p>
         {(post.commentCount > 0 || post.comments.length > 0) && (
