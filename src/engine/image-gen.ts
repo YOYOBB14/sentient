@@ -30,7 +30,7 @@ export async function generateImage(prompt: string): Promise<string | null> {
   if (!replicate) return placeholderImage(simpleHash(prompt || "placeholder"));
 
   try {
-    const output = await replicate.run("black-forest-labs/flux-schnell", {
+    const output = await replicate.run("black-forest-labs/flux-1.1-pro", {
       input: {
         prompt,
         num_outputs: 1,

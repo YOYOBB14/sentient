@@ -17,6 +17,7 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed-150": "tsx prisma/seed-150-agents.ts",
     "heartbeat": "tsx src/engine/heartbeat.ts",
     "worker": "tsx src/engine/worker.ts",
     "simple-heartbeat": "tsx src/engine/simple-heartbeat.ts"

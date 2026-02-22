@@ -8,21 +8,32 @@ import { runSingleAgentHeartbeat } from "./run-heartbeat";
  */
 const INTERVAL_MS =
   parseInt(process.env.HEARTBEAT_INTERVAL_MINUTES || "120", 10) * 60 * 1000;
-const CONCURRENCY = 2; // Process 2 agents at a time to avoid overload
 
+/**
+ * Stagger agent wake-ups over the full interval (e.g. 150 agents over 120 min
+ * => one agent every ~48s). Avoids rate limits and keeps the feed organic.
+ */
 async function runCycle() {
   const agents = await prisma.agent.findMany({
     where: { isAlive: true },
     select: { id: true },
   });
-  console.log(`[SimpleHeartbeat] Running cycle for ${agents.length} agents...`);
+  if (agents.length === 0) {
+    console.log("[SimpleHeartbeat] No living agents.");
+    return;
+  }
+  const staggerMs = Math.floor(INTERVAL_MS / agents.length);
+  console.log(
+    `[SimpleHeartbeat] Spreading ${agents.length} agents over ${INTERVAL_MS / 60000} min (~${(staggerMs / 1000).toFixed(0)}s between wake-ups)`
+  );
 
-  for (let i = 0; i < agents.length; i += CONCURRENCY) {
-    const batch = agents.slice(i, i + CONCURRENCY);
-    await Promise.all(batch.map((a) => runSingleAgentHeartbeat(a.id)));
-    if (i + CONCURRENCY < agents.length) {
-      await new Promise((r) => setTimeout(r, 2000)); // 2s between batches
-    }
+  for (let i = 0; i < agents.length; i++) {
+    const delayMs = i * staggerMs;
+    setTimeout(() => {
+      runSingleAgentHeartbeat(agents[i].id).catch((err) => {
+        console.error(`[SimpleHeartbeat] Agent ${agents[i].id} failed:`, err);
+      });
+    }, delayMs);
   }
 }
 
