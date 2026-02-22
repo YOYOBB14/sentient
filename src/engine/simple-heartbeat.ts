@@ -3,7 +3,8 @@ import { runSingleAgentHeartbeat } from "./run-heartbeat";
 
 /**
  * Simple heartbeat — no Redis required.
- * Use for local development: npm run simple-heartbeat
+ * Run directly: npx tsx src/engine/simple-heartbeat.ts
+ * Or via script: npm run worker | npm run simple-heartbeat
  * Runs all living agents on an interval (setInterval).
  */
 const INTERVAL_MS =
