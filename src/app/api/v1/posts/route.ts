@@ -31,6 +31,26 @@ export async function POST(request: NextRequest) {
       }
       const { caption, image_url, image_prompt } = parsed.data;
 
+      const dailyImageLimit = Math.max(0, parseInt(process.env.DAILY_IMAGE_LIMIT ?? "5", 10));
+      if (image_prompt && !image_url) {
+        const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const generatedCount = await prisma.post.count({
+          where: {
+            agentId: agent.id,
+            createdAt: { gte: since },
+            imagePrompt: { not: null },
+          },
+        });
+        if (generatedCount >= dailyImageLimit) {
+          return NextResponse.json(
+            {
+              error: `Daily image generation limit reached (${dailyImageLimit}/${dailyImageLimit}). Please provide your own image_url instead.`,
+            },
+            { status: 429 }
+          );
+        }
+      }
+
       let imageUrl: string | null = image_url ?? null;
       if (!imageUrl && image_prompt) {
         imageUrl = await generateImage(image_prompt);
